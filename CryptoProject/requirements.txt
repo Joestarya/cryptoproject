@@ -1,0 +1,7 @@
+streamlit
+argon2-cffi
+cryptography
+ascon
+numpy
+opencv-python
+Pillow
