@@ -6,10 +6,12 @@ from typing import Dict
 from cryptography.fernet import Fernet
 from crypto.super_text import step1_reverse_encrypt, step2_fernet_encrypt, super_decrypt
 
-from crypto.steg_dct import embed_dct, extract_dct
-
 import base64
 import os
+
+from PIL import Image
+from io import BytesIO
+import crypto.steg_lsbm as steg_lsbm
 
 
 # ======================
@@ -81,7 +83,7 @@ def main_menu():
             "Text Encryption and Decrypt",
             "Super Text Encrypt and Decrypt",
             "File Encryption (XChaCha20)",
-            "Steganography (DCT)"
+            "Steganography LSBM"
         ]
     )
 
@@ -364,59 +366,88 @@ def main_menu():
                 st.error(f"❌ Decryption failed: {e}")
 
                     
-    elif menu == "Steganography (DCT)":
-        st.title("Steganografi DCT (Discrete Cosine Transform)")
-        st.markdown("Algoritma ini menyembunyikan pesan di domain frekuensi, membuatnya lebih tahan terhadap kompresi dan manipulasi.")
-
-        # Bagian Embed Message
-        st.header("Embed Message into Image")
-        st.markdown("Algoritma ini berfungsi paling baik dengan gambar PNG untuk menghindari kompresi lossy.")
+    elif menu == "Steganography LSBM":
+        st.header("Steganography: LSB Matching (LSB±1)")
+        st.info("""
+        This tool uses LSB Matching, a more secure version of LSB. 
+        Instead of just flipping the last bit, it randomly adds or subtracts 1 
+        from a pixel's value to match the target bit. This makes the
+        changes harder to detect with statistical analysis.
         
-        uploaded_image_embed = st.file_uploader("Upload image (PNG)", type=['png'], key="dct_embed")
-        message_to_embed = st.text_area("Enter message to embed:", key="dct_embed_msg")
-        
-        if st.button("Embed Message", key="dct_btn_embed"):
-            if uploaded_image_embed and message_to_embed:
-                st.info("Pesan sedang disisipkan...")
-                image_bytes = uploaded_image_embed.getvalue()
-                stego_bytes = embed_dct(image_bytes, message_to_embed)
+        **Important:** Use lossless image formats like **PNG** or **BMP**. 
+        Using JPEG will corrupt the hidden message.
+        """)
 
-                if isinstance(stego_bytes, bytes):
-                    st.success("Penyisipan pesan berhasil!")
-                    st.image(stego_bytes, caption="Stego-image (Gambar yang sudah disisipi pesan)")
-                    
-                    st.download_button(
-                        label="Download Stego-image",
-                        data=stego_bytes,
-                        file_name="stego_dct.png",
-                        mime="image/png"
-                    )
+        encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
+
+        # --- ENCODE TAB ---
+        with encode_tab:
+            st.subheader("Hide a Secret Message in an Image")
+            
+            uploaded_image = st.file_uploader("1. Upload your cover image (PNG, BMP)", type=["png", "bmp"], key="lsbm_uploader")
+            message = st.text_area("2. Enter your secret message:", height=150, key="lsbm_message")
+            
+            if st.button("Hide Message", key="lsbm_hide_btn"):
+                if uploaded_image is not None and message:
+                    try:
+                        # Open the uploaded image with Pillow
+                        cover_image = Image.open(uploaded_image)
+                        
+                        with st.spinner("Hiding message in image..."):
+                            # Call the hide function from our module
+                            secret_image = steg_lsbm.hide(cover_image, message)
+                        
+                        st.success("Message hidden successfully!")
+                        st.image(secret_image, caption="Your new secret image")
+                        
+                        # --- Provide a download button ---
+                        # Convert PIL image to bytes
+                        buf = BytesIO()
+                        secret_image.save(buf, format="PNG")
+                        byte_im = buf.getvalue()
+                        
+                        st.download_button(
+                            label="3. Download Secret Image (as PNG)",
+                            data=byte_im,
+                            file_name="secret_image.png",
+                            mime="image/png"
+                        )
+                        
+                    except ValueError as e:
+                        # This catches the "message too large" error
+                        st.error(f"Error: {e}")
+                    except Exception as e:
+                        st.error(f"An unexpected error occurred: {e}")
                 else:
-                    st.error(f"Gagal menyisipkan pesan: {stego_bytes}")
-            else:
-                st.warning("Mohon unggah gambar dan masukkan pesan terlebih dahulu.")
+                    st.warning("Please upload an image and enter a message first.")
 
-        st.markdown("---")
-
-        # Bagian Extract Message
-        st.header("Extract Message from Image")
-        st.markdown("Unggah gambar stego (PNG) untuk mengekstrak pesan rahasia.")
-
-        uploaded_image_extract = st.file_uploader("Upload stego image (PNG)", type=['png'], key="dct_extract")
-        
-        if st.button("Extract Message", key="dct_btn_extract"):
-            if uploaded_image_extract:
-                st.info("Pesan sedang diekstrak...")
-                image_bytes = uploaded_image_extract.getvalue()
-                decrypted_message = extract_dct(image_bytes)
-
-                if "Error" not in decrypted_message:
-                    st.success("Ekstraksi pesan selesai!")
-                    st.text_area("Decrypted Message:", value=decrypted_message, height=150, disabled=True)
+        # --- DECODE TAB ---
+        with decode_tab:
+            st.subheader("Reveal a Secret Message from an Image")
+            
+            secret_file = st.file_uploader("1. Upload your secret image", type=["png", "bmp"], key="lsbm_decoder")
+            
+            if st.button("Reveal Message", key="lsbm_reveal_btn"):
+                if secret_file is not None:
+                    try:
+                        # Open the image with Pillow
+                        secret_image = Image.open(secret_file)
+                        
+                        with st.spinner("Searching for hidden message..."):
+                            # Call the reveal function from our module
+                            revealed_message = steg_lsbm.reveal(secret_image)
+                        
+                        if revealed_message is not None:
+                            st.success("Found a hidden message!")
+                            st.text_area("Revealed Message:", value=revealed_message, height=150, key="lsbm_revealed_text")
+                        else:
+                            st.error("Could not find a hidden message. The image may be clean or the data corrupted.")
+                            
+                    except Exception as e:
+                        st.error(f"An error occurred during decoding: {e}")
                 else:
-                    st.error(decrypted_message)
-            else:
-                st.warning("Mohon unggah gambar stego terlebih dahulu.")
+                    st.warning("Please upload an image to decode.")
+
 # ======================
 # MAIN ENTRY POINT
 # ======================
