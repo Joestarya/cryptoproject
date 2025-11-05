@@ -15,14 +15,13 @@ import crypto.steg_lsbm as steg_lsbm
 
 
 # ======================
-#       APP SETUP
+# Setup
 # ======================
 st.set_page_config(page_title="Crypto Project", page_icon="🧩", layout="centered")
 
 # ======================
-#   SESSION MANAGEMENT
+# Session
 # ======================
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
@@ -34,7 +33,8 @@ if "username" not in st.session_state:
 # ======================
 def login_page():
     st.title("🔐 Secure Login System")
-    st.subheader("Welcome to the Cryptography Project")
+    st.subheader("Selamat Datang di Enkripsi Kriptografi")
+    st.text("Situs ")
 
     tab1, tab2 = st.tabs(["🔑 Login", "🧾 Register"])
 
@@ -64,7 +64,7 @@ def login_page():
 
 
 # ======================
-#       MAIN MENU
+# Main Menu
 # ======================
 def main_menu():
     st.sidebar.title(f"👋 Welcome, {st.session_state.username}")
@@ -81,10 +81,10 @@ def main_menu():
     menu = st.sidebar.selectbox(
         "Navigate",
         [
-            "Text Encryption and Decryption (ChaCha20)",
-            "Super Text Encrypt and Decryption (Reverse + Fernet)",
-            "File Encryption and Decryption (XChaCha20)",
-            "Steganography (LSBM)"
+            "Text Encryption and Decrypt",
+            "Super Text Encrypt and Decrypt",
+            "File Encryption (XChaCha20)",
+            "Steganography LSBM"
         ]
     )
 
@@ -95,12 +95,12 @@ def main_menu():
         st.rerun()
 
     # ======================
-    # PAGES
+    # ChaCha20 Text Encrypt and Decrypt
     # ======================
-    elif menu == "Text Encryption and Decryption (ChaCha20)":
-        st.header("ChaCha20 Text Encryption")
+    elif menu == "Text Encryption and Decrypt":
+        st.title("📝 ChaCha20 Text Encryption")
 
-    # Generate or reuse session key
+    # ========= Generasi (refresh) kunci baru
         if "text_key" not in st.session_state:
             st.session_state.text_key = chacha_text.generate_key()
 
@@ -123,6 +123,7 @@ def main_menu():
         st.subheader("🔒 Encrypt Text")
         plaintext = st.text_area("Enter text to encrypt:", "")
 
+        # ========= Encrypt
         if st.button("Encrypt"):
             if plaintext.strip() == "":
                 st.warning("Please enter some text to encrypt.")
@@ -136,14 +137,14 @@ def main_menu():
                 st.code(st.session_state.last_ciphertext, language="plaintext")
                 st.code(st.session_state.last_nonce, language="plaintext")
 
-        # ====================== Decrypt Text (ChaCha20) ======================
+        # ========= Decrypt
         st.divider()
         st.subheader("🔓 Decrypt Text")
 
-        # Allow manual key input (Base64) so user can re-enter key after restart
+        # Manual input agar user bisa menggunakan key sebelumnya
         manual_text_key = st.text_input(
             "Key for Text Decryption (Base64) — paste here if you saved it:",
-            value=st.session_state.get("text_key_b64", ""), # optional: you may store a string form earlier
+            value=st.session_state.get("text_key_b64", ""),
             help="Contoh: hasil dari chacha_text.key_to_str(key_bytes)"
         )
 
@@ -154,21 +155,21 @@ def main_menu():
             if cipher_in.strip() == "" or nonce_in.strip() == "":
                 st.warning("Please provide both ciphertext and nonce.")
             else:
-                # choose key: prefer manual if provided, otherwise use session key
                 key_to_use = manual_text_key.strip() if manual_text_key.strip() != "" else chacha_text.key_to_str(st.session_state.text_key)
                 try:
-                    # chacha_text.decrypt_text expects key bytes or session key depending on your implementation
                     plain = chacha_text.decrypt_text(cipher_in, nonce_in, chacha_text.str_to_key(key_to_use))
                     st.success("✅ Decrypted successfully!")
                     st.code(plain, language="plaintext")
                 except Exception as e:
                     st.error(f"❌ Decryption failed: {e}")
 
+    # ====================================================
+    # Super Text Encrypt and Decrypt
+    # ====================================================
+    elif menu == "Super Text Encrypt and Decrypt":
+        st.title("🌀 Super Text (Reverse + Fernet, 2-Step Mode)")
 
-    elif menu == "Super Text Encrypt and Decryption (Reverse + Fernet)":
-        st.title("Super Text (Reverse + Fernet, 2-Step Mode)")
-
-        # === key setup ===
+        # ========= Setup kunci
         if "super_key" not in st.session_state:
             st.session_state.super_key = Fernet.generate_key().decode()
             st.session_state.super_key_saved = st.session_state.super_key
@@ -178,9 +179,7 @@ def main_menu():
 
         st.text_input("Your Fernet Key (Base64):", st.session_state.super_key, disabled=True)
 
-        # ====================================================
-        # STEP 1: Reverse Text
-        # ====================================================
+        # ========= Encrypt tahap 1: reverse
         st.subheader("Step 1: Reverse Text")
         plaintext = st.text_area("Enter plaintext:")
 
@@ -195,15 +194,14 @@ def main_menu():
 
         st.divider()
 
-        # ====================================================
-        # STEP 2: Fernet Encrypt
-        # ====================================================
+        # ========= Encrypt tahap 2: fernet
         st.subheader("Step 2: Fernet Encrypt")
         reversed_input = st.text_area(
             "Enter reversed text from Step 1:",
             st.session_state.get("last_reversed", "")
         )
 
+        # Error handling jika tahap 1 belum dilakukan
         if st.button("🔒 Encrypt with Fernet"):
             if reversed_input.strip() == "":
                 st.warning("Please input reversed text.")
@@ -222,9 +220,7 @@ def main_menu():
 
         st.divider()
 
-        # ====================================================
-        # 🔓 DECRYPT SECTION (Super Text)
-        # ====================================================
+        # ========= Decrypt Super
         st.subheader("🔓 Decrypt Super Text")
 
         manual_super_key = st.text_input(
@@ -251,8 +247,11 @@ def main_menu():
                 except Exception as e:
                     st.error(f"❌ Decryption failed: {e}")
 
-    elif menu == "File Encryption and Decryption (XChaCha20)":
-        st.header("File Encryption (XChaCha20-Poly1305)")
+    # ====================================================
+    # File Encryption (XChaCha20-Poly1305)
+    # ====================================================
+    elif menu == "File Encryption (XChaCha20)":
+        st.title("🗂️ File Encryption (XChaCha20-Poly1305)")
 
         from crypto.xchacha_file import (
             generate_key_b64,
@@ -260,7 +259,7 @@ def main_menu():
             decrypt_file_bytes
         )
 
-        # ===== Key management (persistent per session) =====
+        # # ========= setup key
         if "file_key" not in st.session_state or not st.session_state.get("file_key"):
             st.session_state.file_key = generate_key_b64()
             st.session_state.file_key_saved = st.session_state.file_key
@@ -280,7 +279,7 @@ def main_menu():
 
         st.divider()
 
-        # ====== ENCRYPT FILE ======
+        # ========= Encrypt
         st.subheader("🔒 Encrypt File")
         uploaded = st.file_uploader("Upload file to encrypt", type=None, key="upload_enc")
 
@@ -313,7 +312,7 @@ def main_menu():
 
         st.divider()
 
-        # ====== DECRYPT FILE ======
+        # ========= decrypt
         st.subheader("🔓 Decrypt File")
 
         manual_file_key = st.text_input(
@@ -324,13 +323,12 @@ def main_menu():
 
         uploaded_ct = st.file_uploader("Upload ciphertext file (.enc)", type=None, key="upload_dec")
 
-        # auto-fill from previous session
+        # auto fill
         ct_b64_input = st.text_area(
             "Or paste Ciphertext (Base64):",
             value=st.session_state.get("file_cipher", ""),
             height=80
         )
-
         nonce_input = st.text_input(
             "Nonce (Base64):",
             value=st.session_state.get("file_nonce", "")
@@ -340,10 +338,8 @@ def main_menu():
 
         if st.button("Decrypt File"):
             try:
-                # choose key
                 key_to_use = manual_file_key.strip() if manual_file_key.strip() != "" else st.session_state.file_key
 
-                # get ciphertext base64
                 if uploaded_ct is not None:
                     raw_ct = uploaded_ct.read()
                     ct_b64 = base64.b64encode(raw_ct).decode()
@@ -366,22 +362,18 @@ def main_menu():
             except Exception as e:
                 st.error(f"❌ Decryption failed: {e}")
 
-                    
-    elif menu == "Steganography (LSBM)":
-        st.header("Steganography: LSB Matching (LSB±1)")
-        st.info("""
-        This tool uses LSB Matching, a more secure version of LSB. 
-        Instead of just flipping the last bit, it randomly adds or subtracts 1 
-        from a pixel's value to match the target bit. This makes the
-        changes harder to detect with statistical analysis.
-        
-        **Important:** Use lossless image formats like **PNG** or **BMP**. 
-        Using JPEG will corrupt the hidden message.
-        """)
+    # ====================================================
+    # Steganography: LSB Matching (LSB±1)
+    # ====================================================
+    elif menu == "Steganography LSBM":
+        st.title("🖼️ Steganography: LSB Matching (LSB±1)")
+        st.info(""" LSBM dianggap lebih aman dari LSB karena selain membalikkan bit terakhir, LSBM menambahkan atau mengurangkan 1
+                dari value pixel untuk dicocokkan dengan bit target. Format gambar yang didukung adalah PNG dan BMP, jika 
+                menggunakan JPEG maka pesan akan corrupt.""")
 
         encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
 
-        # --- ENCODE TAB ---
+        # ========= encode
         with encode_tab:
             st.subheader("Hide a Secret Message in an Image")
             
@@ -391,18 +383,16 @@ def main_menu():
             if st.button("Hide Message", key="lsbm_hide_btn"):
                 if uploaded_image is not None and message:
                     try:
-                        # Open the uploaded image with Pillow
+                        # gambar dibuka dalam bentuk PILLOW
                         cover_image = Image.open(uploaded_image)
                         
                         with st.spinner("Hiding message in image..."):
-                            # Call the hide function from our module
                             secret_image = steg_lsbm.hide(cover_image, message)
                         
                         st.success("Message hidden successfully!")
                         st.image(secret_image, caption="Your new secret image")
                         
-                        # --- Provide a download button ---
-                        # Convert PIL image to bytes
+                        # Konversi PILLOW ke bytes
                         buf = BytesIO()
                         secret_image.save(buf, format="PNG")
                         byte_im = buf.getvalue()
@@ -414,15 +404,15 @@ def main_menu():
                             mime="image/png"
                         )
                         
+                    # Error handling jika file terlalu besar
                     except ValueError as e:
-                        # This catches the "message too large" error
                         st.error(f"Error: {e}")
                     except Exception as e:
                         st.error(f"An unexpected error occurred: {e}")
                 else:
                     st.warning("Please upload an image and enter a message first.")
 
-        # --- DECODE TAB ---
+        # ========= Ddecode
         with decode_tab:
             st.subheader("Reveal a Secret Message from an Image")
             
@@ -431,11 +421,9 @@ def main_menu():
             if st.button("Reveal Message", key="lsbm_reveal_btn"):
                 if secret_file is not None:
                     try:
-                        # Open the image with Pillow
                         secret_image = Image.open(secret_file)
                         
                         with st.spinner("Searching for hidden message..."):
-                            # Call the reveal function from our module
                             revealed_message = steg_lsbm.reveal(secret_image)
                         
                         if revealed_message is not None:
@@ -450,7 +438,7 @@ def main_menu():
                     st.warning("Please upload an image to decode.")
 
 # ======================
-# MAIN ENTRY POINT
+# Halaman log
 # ======================
 def main():
     if not st.session_state.logged_in:
