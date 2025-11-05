@@ -367,10 +367,6 @@ def main_menu():
     # ====================================================
     elif menu == "Steganography LSBM":
         st.title("🖼️ Steganography: LSB Matching (LSB±1)")
-        st.info(""" LSBM dianggap lebih aman dari LSB karena selain membalikkan bit terakhir, LSBM menambahkan atau mengurangkan 1
-                dari value pixel untuk dicocokkan dengan bit target. Format gambar yang didukung adalah PNG dan BMP, jika 
-                menggunakan JPEG maka pesan akan corrupt.""")
-
         encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
 
         # ========= encode
