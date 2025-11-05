@@ -20,8 +20,9 @@ import crypto.steg_lsbm as steg_lsbm
 st.set_page_config(page_title="Crypto Project", page_icon="🧩", layout="centered")
 
 # ======================
-# SESSION MANAGEMENT
+#   SESSION MANAGEMENT
 # ======================
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
@@ -63,7 +64,7 @@ def login_page():
 
 
 # ======================
-# MAIN MENU
+#       MAIN MENU
 # ======================
 def main_menu():
     st.sidebar.title(f"👋 Welcome, {st.session_state.username}")
@@ -80,10 +81,10 @@ def main_menu():
     menu = st.sidebar.selectbox(
         "Navigate",
         [
-            "Text Encryption and Decrypt",
-            "Super Text Encrypt and Decrypt",
-            "File Encryption (XChaCha20)",
-            "Steganography LSBM"
+            "Text Encryption and Decryption (ChaCha20)",
+            "Super Text Encrypt and Decryption (Reverse + Fernet)",
+            "File Encryption and Decryption (XChaCha20)",
+            "Steganography (LSBM)"
         ]
     )
 
@@ -96,7 +97,7 @@ def main_menu():
     # ======================
     # PAGES
     # ======================
-    elif menu == "Text Encryption and Decrypt":
+    elif menu == "Text Encryption and Decryption (ChaCha20)":
         st.header("ChaCha20 Text Encryption")
 
     # Generate or reuse session key
@@ -164,8 +165,8 @@ def main_menu():
                     st.error(f"❌ Decryption failed: {e}")
 
 
-    elif menu == "Super Text Encrypt and Decrypt":
-        st.title("🌀 Super Text (Reverse + Fernet, 2-Step Mode)")
+    elif menu == "Super Text Encrypt and Decryption (Reverse + Fernet)":
+        st.title("Super Text (Reverse + Fernet, 2-Step Mode)")
 
         # === key setup ===
         if "super_key" not in st.session_state:
@@ -250,8 +251,8 @@ def main_menu():
                 except Exception as e:
                     st.error(f"❌ Decryption failed: {e}")
 
-    elif menu == "File Encryption (XChaCha20)":
-        st.header("🗂️ File Encryption (XChaCha20-Poly1305)")
+    elif menu == "File Encryption and Decryption (XChaCha20)":
+        st.header("File Encryption (XChaCha20-Poly1305)")
 
         from crypto.xchacha_file import (
             generate_key_b64,
@@ -366,7 +367,7 @@ def main_menu():
                 st.error(f"❌ Decryption failed: {e}")
 
                     
-    elif menu == "Steganography LSBM":
+    elif menu == "Steganography (LSBM)":
         st.header("Steganography: LSB Matching (LSB±1)")
         st.info("""
         This tool uses LSB Matching, a more secure version of LSB. 
