@@ -52,15 +52,15 @@ def login_page():
                 st.error("❌ Invalid username or password")
 
     with tab2:
-        new_user = st.text_input("Create Username")
-        new_pass = st.text_input("Create Password", type="password")
+        new_user = st.text_input("Ketik Username")
+        new_pass = st.text_input("Ketik Password", type="password")
 
         if st.button("Register"):
             success = argon2_login.register_user(new_user, new_pass)
             if success:
-                st.success("✅ Account created successfully!")
+                st.success("✅ Akun telah terdaftar")
             else:
-                st.warning("⚠️ Username already exists!")
+                st.warning("⚠️ Username telah digunakan!")
 
 
 # ======================
@@ -68,7 +68,7 @@ def login_page():
 # ======================
 def main_menu():
     st.sidebar.title(f"👋 Welcome, {st.session_state.username}")
-    st.sidebar.title(f"👋 Hello, {st.session_state.username}")
+    st.sidebar.title(f"👋 Halo, {st.session_state.username}")
 
     # Pastikan super_key tidak pernah berubah walau rerun
     if "super_key" not in st.session_state or len(st.session_state.get("super_key", "")) != 44:
@@ -79,11 +79,11 @@ def main_menu():
             st.session_state.super_key = st.session_state.super_key_saved
 
     menu = st.sidebar.selectbox(
-        "Navigate",
+        "Navigasi",
         [
-            "Text Encryption and Decrypt",
-            "Super Text Encrypt and Decrypt",
-            "File Encryption (XChaCha20)",
+            "Teks Enkripsi dan Dekripsi",
+            "Teks Super Enkripsi dan Dekripsi",
+            "File Enkripsi dan Dekripsi (XChaCha20)",
             "Steganography LSBM"
         ]
     )
@@ -95,10 +95,10 @@ def main_menu():
         st.rerun()
 
     # ======================
-    # ChaCha20 Text Encrypt and Decrypt
+    # ChaCha20 Teks
     # ======================
-    elif menu == "Text Encryption and Decrypt":
-        st.title("📝 ChaCha20 Text Encryption")
+    elif menu == "Teks Enkripsi dan Dekripsi":
+        st.title("📝 Enkripsi dan Dekripsi Teks Menggunakan Algoritma ChaCha20")
 
     # ========= Generasi (refresh) kunci baru
         if "text_key" not in st.session_state:
@@ -108,65 +108,66 @@ def main_menu():
         
         with col1:
             st.text_area(
-                "Your secret key (Base64):",
+                "Kunci (base64):",
                 chacha_text.key_to_str(st.session_state.text_key),
                 height=50,
                 key=f"display_key_{hash(st.session_state.text_key)}"
             )
 
         with col2:
-            if st.button("🔁 Refresh Key"):
+            if st.button("🔁 Refresh Kunci"):
                 st.session_state.text_key = chacha_text.generate_key()
                 st.rerun()
 
         st.divider()
-        st.subheader("🔒 Encrypt Text")
-        plaintext = st.text_area("Enter text to encrypt:", "")
+        st.subheader("🔒 Enkripsi Teks")
+        plaintext = st.text_area("Masukkan teks untuk dienkripsi:", "")
 
         # ========= Encrypt
-        if st.button("Encrypt"):
+        if st.button("Enkripsi"):
             if plaintext.strip() == "":
-                st.warning("Please enter some text to encrypt.")
+                st.warning("Wajib memasukkan teks untuk dienkripsi!")
             else:
                 result = chacha_text.encrypt_text(plaintext, st.session_state.text_key)
                 # simpan hasil ke session_state
                 st.session_state.last_ciphertext = result["ciphertext"]
                 st.session_state.last_nonce = result["nonce"]
 
-                st.success("✅ Encrypted successfully!")
+                st.success("✅ Teks telah dienkripsi!")
                 st.code(st.session_state.last_ciphertext, language="plaintext")
                 st.code(st.session_state.last_nonce, language="plaintext")
 
         # ========= Decrypt
         st.divider()
-        st.subheader("🔓 Decrypt Text")
+        st.subheader("🔓 Dekripsi Teks")
 
         # Manual input agar user bisa menggunakan key sebelumnya
         manual_text_key = st.text_input(
-            "Key for Text Decryption (Base64) — paste here if you saved it:",
+            "Kunci (base64) | Paste jika menyimpan kunci",
             value=st.session_state.get("text_key_b64", ""),
-            help="Contoh: hasil dari chacha_text.key_to_str(key_bytes)"
         )
 
-        cipher_in = st.text_area("Ciphertext (Base64):", st.session_state.get("last_ciphertext", ""))
-        nonce_in = st.text_input("Nonce (Base64):", st.session_state.get("last_nonce", ""))
+        cipher_in = st.text_area("Ciphertext (base64):", st.session_state.get("last_ciphertext", ""))
+        nonce_in = st.text_input("Nonce (base64):", st.session_state.get("last_nonce", ""))
 
-        if st.button("Decrypt"):
+        if st.button("Dekripsi"):
+            # error handling kalo ciphertext atau nonce kosong
             if cipher_in.strip() == "" or nonce_in.strip() == "":
-                st.warning("Please provide both ciphertext and nonce.")
+                st.warning("Wajib memasukkan ciphertext dan nonce!")
             else:
+                # Ambil kunci manual kalo textbox diisi, else ambil kunci yaang digenerate (tp kayak rusak else nya?)
                 key_to_use = manual_text_key.strip() if manual_text_key.strip() != "" else chacha_text.key_to_str(st.session_state.text_key)
                 try:
                     plain = chacha_text.decrypt_text(cipher_in, nonce_in, chacha_text.str_to_key(key_to_use))
-                    st.success("✅ Decrypted successfully!")
+                    st.success("✅ Teks telah didekripsi!")
                     st.code(plain, language="plaintext")
                 except Exception as e:
-                    st.error(f"❌ Decryption failed: {e}")
+                    st.error(f"❌ Dekripsi gagal: {e}")
 
-    # ====================================================
-    # Super Text Encrypt and Decrypt
-    # ====================================================
-    elif menu == "Super Text Encrypt and Decrypt":
+    # ======================
+    # Teks super
+    # ======================
+    elif menu == "Teks Super Enkripsi dan Dekripsi":
         st.title("🌀 Super Text (Reverse + Fernet, 2-Step Mode)")
 
         # ========= Setup kunci
@@ -177,34 +178,35 @@ def main_menu():
             if "super_key_saved" in st.session_state:
                 st.session_state.super_key = st.session_state.super_key_saved
 
-        st.text_input("Your Fernet Key (Base64):", st.session_state.super_key, disabled=True)
+        st.text_input("Kunci Fernet (base64):", st.session_state.super_key, disabled=True)
 
+        st.subheader("🔒 Enkripsi Super Text")
         # ========= Encrypt tahap 1: reverse
-        st.subheader("Step 1: Reverse Text")
-        plaintext = st.text_area("Enter plaintext:")
+        st.subheader("Tahap 1: Reverse Text")
+        plaintext = st.text_area("Masukkan teks untuk dienkripsi:")
 
         if st.button("🔁 Reverse Text"):
             if plaintext.strip() == "":
-                st.warning("Please enter some text first.")
+                st.warning("Wajib memasukkan teks untuk enkripsi!")
             else:
                 reversed_text = step1_reverse_encrypt(plaintext)
-                st.success("✅ Reversed text generated!")
+                st.success("✅ Teks telah dienkripsi dengan algoritma Reverse!")
                 st.code(reversed_text, language="text")
                 st.session_state.last_reversed = reversed_text
 
         st.divider()
 
         # ========= Encrypt tahap 2: fernet
-        st.subheader("Step 2: Fernet Encrypt")
+        st.subheader("Tahap 2: Fernet Encrypt")
         reversed_input = st.text_area(
-            "Enter reversed text from Step 1:",
+            "Masukkan hasil enkripsi dari tahap 1:",
             st.session_state.get("last_reversed", "")
         )
 
         # Error handling jika tahap 1 belum dilakukan
         if st.button("🔒 Encrypt with Fernet"):
             if reversed_input.strip() == "":
-                st.warning("Please input reversed text.")
+                st.warning("Wajib menjalankan tahap 1 terlebih dahulu!")
             else:
                 try:
                     final_cipher = step2_fernet_encrypt(reversed_input, st.session_state.super_key)
@@ -212,7 +214,7 @@ def main_menu():
                     # simpan hasil ke session agar auto muncul di decrypt section
                     st.session_state.super_cipher = final_cipher
 
-                    st.success("✅ Super Encryption successful!")
+                    st.success("✅ Enkripsi super berhasil!")
                     st.code(st.session_state.super_cipher, language="text")
 
                 except Exception as e:
@@ -250,7 +252,7 @@ def main_menu():
     # ====================================================
     # File Encryption (XChaCha20-Poly1305)
     # ====================================================
-    elif menu == "File Encryption (XChaCha20)":
+    elif menu == "File Enkripsi dan Dekripsi (XChaCha20)":
         st.title("🗂️ File Encryption (XChaCha20-Poly1305)")
 
         from crypto.xchacha_file import (
@@ -366,7 +368,7 @@ def main_menu():
     # Steganography: LSB Matching (LSB±1)
     # ====================================================
     elif menu == "Steganography LSBM":
-        st.title("🖼️ Steganography: LSB Matching (LSB±1)")
+        st.title("🖼️ Steganography: LSB Matching (LSB±1)") 
         encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
 
         # ========= encode
