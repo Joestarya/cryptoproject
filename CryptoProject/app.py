@@ -81,9 +81,9 @@ def main_menu():
     menu = st.sidebar.selectbox(
         "Navigasi",
         [
-            "Teks Enkripsi dan Dekripsi",
-            "Teks Super Enkripsi dan Dekripsi",
-            "File Enkripsi dan Dekripsi",
+            "Text Encryption and Decrypt",
+            "Super Text Encrypt and Decrypt",
+            "File Encryption",
             "Steganography"
         ]
     )
@@ -97,9 +97,9 @@ def main_menu():
     # ======================
     # ChaCha20 Teks
     # ======================
-    elif menu == "Teks Enkripsi dan Dekripsi":
-        st.title("Enkripsi dan Dekripsi Teks Menggunakan Algoritma ChaCha20")
-        st.info("ChaCha20 adalah algoritma stream cipher yang cepat dan aman, sering digunakan dalam protokol keamanan seperti TLS dan SSH.")
+    elif menu == "Text Encryption and Decrypt":
+        st.title("Text Enkripsi dengan menggunakan algoritma ChaCha20-Poly1305")
+        st.info("ChaCha20-Poly1305 adalah algoritma enkripsi simetris yang menggabungkan kecepatan dan keamanan. ChaCha20 adalah algoritma stream cipher yang dirancang untuk efisiensi tinggi pada perangkat lunak, sementara Poly1305 adalah algoritma autentikasi pesan yang memberikan integritas data. Kombinasi keduanya menghasilkan enkripsi yang kuat dan cepat, sering digunakan dalam protokol keamanan seperti TLS.")   
 
     # ========= Generasi (refresh) kunci baru
         if "text_key" not in st.session_state:
@@ -165,12 +165,12 @@ def main_menu():
                 except Exception as e:
                     st.error(f"❌ Dekripsi gagal: {e}")
 
-    # ======================
-    # Teks super
-    # ======================
-    elif menu == "Teks Super Enkripsi dan Dekripsi":
-        st.title("Super Text Menggunakan algoritma (Reverse + Fernet, 2-Step Enkripsi)")
-        st.info("Super Text Encryption menggabungkan dua metode enkripsi: pertama, teks dibalik (reversed), kemudian dienkripsi menggunakan algoritma Fernet yang aman.")
+    # ====================================================
+    # Super Text Encrypt and Decrypt
+    # ====================================================
+    elif menu == "Super Text Encrypt and Decrypt":
+        st.title("Super Text menggunakan algoritma (Reverse + Fernet, 2-Step Enkripsi)") 
+        st.info("Super Text Encryption adalah metode enkripsi yang menggabungkan dua teknik enkripsi berbeda untuk meningkatkan keamanan data. Pertama, teks asli dibalik (reverse) untuk mengacak urutan karakter, menambah lapisan kerumitan. Kemudian, teks yang telah dibalik dienkripsi menggunakan algoritma Fernet, yang menyediakan enkripsi simetris dengan autentikasi pesan. Kombinasi kedua langkah ini menghasilkan enkripsi yang lebih kuat dan sulit dipecahkan dibandingkan menggunakan satu metode saja.")
 
         # ========= Setup kunci
         if "super_key" not in st.session_state:
@@ -371,9 +371,8 @@ def main_menu():
     # Steganography: LSB Matching (LSB±1)
     # ====================================================
     elif menu == "Steganography":
-        st.title("🖼️ Steganography Menggunakan Algoritma LSB-Matching")
-        st.info("LSB-Matching adalah teknik steganografi yang menyembunyikan pesan rahasia dalam citra digital dengan memodifikasi bit paling tidak signifikan (LSB) dari piksel gambar. Teknik ini membuat perubahan yang lebih halus pada gambar, sehingga lebih sulit dideteksi dibandingkan metode LSB tradisional.")
-         
+        st.title("🖼️ Steganography menggunakan algoritma LSB-Matching")
+        st.info("LSB-Matching (Least Significant Bit Matching) adalah teknik steganografi yang menyembunyikan pesan rahasia dalam citra digital dengan memodifikasi bit-bit paling tidak signifikan dari piksel-piksel citra tersebut. Teknik ini bertujuan untuk menyembunyikan informasi tanpa mengubah kualitas visual citra secara signifikan.")
         encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
 
         # ========= encode
