@@ -83,7 +83,7 @@ def main_menu():
         [
             "Text Encryption and Decrypt",
             "Super Text Encrypt and Decrypt",
-            "File Encryption",
+            "File Enkripsi dan Dekripsi",
             "Steganography"
         ]
     )
@@ -371,7 +371,7 @@ def main_menu():
     # Steganography: LSB Matching (LSB±1)
     # ====================================================
     elif menu == "Steganography":
-        st.title("🖼️ Steganography menggunakan algoritma LSB-Matching")
+        st.title("Steganography menggunakan algoritma LSB-Matching")
         st.info("LSB-Matching (Least Significant Bit Matching) adalah teknik steganografi yang menyembunyikan pesan rahasia dalam citra digital dengan memodifikasi bit-bit paling tidak signifikan dari piksel-piksel citra tersebut. Teknik ini bertujuan untuk menyembunyikan informasi tanpa mengubah kualitas visual citra secara signifikan.")
         encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
 
