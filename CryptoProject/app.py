@@ -310,7 +310,7 @@ def main_menu():
                     st.code(f"Nonce (base64):\n{st.session_state.file_nonce}", language="text")
 
                     st.download_button(
-                        label="⬇️ Download ciphertext (.enc)",
+                        label="⬇️ Download file yang sudah dienkripsi (.enc)",
                         data=ct_bytes,
                         file_name=suggested_name,
                         mime="application/octet-stream"
@@ -355,47 +355,49 @@ def main_menu():
                     ct_b64 = ct_b64_input.strip()
 
                 if not ct_b64:
-                    st.warning("Provide ciphertext (upload .enc or paste Base64).")
+                    st.warning("Masukkan ciphertext (upload .enc or paste Base64)")
                 elif not nonce_input.strip():
-                    st.warning("Provide nonce (Base64).")
+                    st.warning("Masukkan nonce (Base64)")
                 else:
                     plaintext_bytes = decrypt_file_bytes(ct_b64, nonce_input.strip(), key_to_use)
-                    st.success("✅ Decryption successful.")
+                    st.success("✅ File berhasil didekripsi!")
                     st.download_button(
-                        label="⬇️ Download decrypted file",
+                        label="⬇️ Download file yang sudah didekripsi",
                         data=plaintext_bytes,
                         file_name=target_name,
                         mime="application/octet-stream"
                     )
             except Exception as e:
-                st.error(f"❌ Decryption failed: {e}")
+                st.error(f"❌ Dekripsi gagal: {e}")
 
     # ====================================================
     # Steganography: LSB Matching (LSB±1)
     # ====================================================
     elif menu == "Steganography":
         st.title("🖼️ Steganography menggunakan algoritma LSB-Matching")
-        st.info("LSB-Matching (Least Significant Bit Matching) adalah teknik steganografi yang menyembunyikan pesan rahasia dalam citra digital dengan memodifikasi bit-bit paling tidak signifikan dari piksel-piksel citra tersebut. Teknik ini bertujuan untuk menyembunyikan informasi tanpa mengubah kualitas visual citra secara signifikan.")
-        encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
+        st.info("LSB-Matching (Least Significant Bit Matching) adalah teknik steganografi yang menyembunyikan pesan rahasia dalam " \
+        "citra digital dengan memodifikasi bit-bit paling tidak signifikan dari piksel-piksel citra tersebut. Teknik ini bertujuan " \
+        "untuk menyembunyikan informasi tanpa mengubah kualitas visual citra secara signifikan.")
+        encode_tab, decode_tab = st.tabs(["🔒 Encode", "🔓 Decode"])
 
         # ========= encode
         with encode_tab:
-            st.subheader("Hide a Secret Message in an Image")
+            st.subheader("Sisipkan pesan rahasia dalam gambar")
             
-            uploaded_image = st.file_uploader("1. Upload your cover image (PNG, BMP)", type=["png", "bmp"], key="lsbm_uploader")
-            message = st.text_area("2. Enter your secret message:", height=150, key="lsbm_message")
+            uploaded_image = st.file_uploader("Upload cover image untuk menyisipkan pesan (PNG, BMP)", type=["png", "bmp"], key="lsbm_uploader")
+            message = st.text_area("Masukkan pesan rahasia", height=150, key="lsbm_message")
             
-            if st.button("Hide Message", key="lsbm_hide_btn"):
+            if st.button("🔒 Encode", key="lsbm_hide_btn"):
                 if uploaded_image is not None and message:
                     try:
                         # gambar dibuka dalam bentuk PILLOW
                         cover_image = Image.open(uploaded_image)
                         
-                        with st.spinner("Hiding message in image..."):
+                        with st.spinner("Menyisipkan pesan dalam gambar"):
                             secret_image = steg_lsbm.hide(cover_image, message)
                         
-                        st.success("Message hidden successfully!")
-                        st.image(secret_image, caption="Your new secret image")
+                        st.success("Pesan telah berhasil disisipkan!")
+                        st.image(secret_image, caption="Gambar berisi pesan rahasia")
                         
                         # Konversi PILLOW ke bytes
                         buf = BytesIO()
@@ -403,7 +405,7 @@ def main_menu():
                         byte_im = buf.getvalue()
                         
                         st.download_button(
-                            label="3. Download Secret Image (as PNG)",
+                            label="Download gambar (PNG)",
                             data=byte_im,
                             file_name="secret_image.png",
                             mime="image/png"
@@ -413,34 +415,34 @@ def main_menu():
                     except ValueError as e:
                         st.error(f"Error: {e}")
                     except Exception as e:
-                        st.error(f"An unexpected error occurred: {e}")
+                        st.error(f"Pastikan format dan ukuran memenuhi aturan: {e}")
                 else:
-                    st.warning("Please upload an image and enter a message first.")
+                    st.warning("Wajib menyediakan cover image dan pesan untuk disisipkan!")
 
         # ========= Ddecode
         with decode_tab:
-            st.subheader("Reveal a Secret Message from an Image")
+            st.subheader("Pecahkan pesan rahasia dalam gambar")
             
-            secret_file = st.file_uploader("1. Upload your secret image", type=["png", "bmp"], key="lsbm_decoder")
+            secret_file = st.file_uploader("Upload gambar yang disisipi pesan", type=["png", "bmp"], key="lsbm_decoder")
             
-            if st.button("Reveal Message", key="lsbm_reveal_btn"):
+            if st.button("🔓 Decode", key="lsbm_reveal_btn"):
                 if secret_file is not None:
                     try:
                         secret_image = Image.open(secret_file)
                         
-                        with st.spinner("Searching for hidden message..."):
+                        with st.spinner("Memecahkan pesan dalam gambar"):
                             revealed_message = steg_lsbm.reveal(secret_image)
                         
                         if revealed_message is not None:
-                            st.success("Found a hidden message!")
-                            st.text_area("Revealed Message:", value=revealed_message, height=150, key="lsbm_revealed_text")
+                            st.success("Pesan rahasia telah dipecahkan!")
+                            st.text_area("Pesan:", value=revealed_message, height=150, key="lsbm_revealed_text")
                         else:
-                            st.error("Could not find a hidden message. The image may be clean or the data corrupted.")
+                            st.error("Tidak ditemukan pesan rahasia")
                             
                     except Exception as e:
-                        st.error(f"An error occurred during decoding: {e}")
+                        st.error(f"Error pada saat proses decode, silakan coba lagi: {e}")
                 else:
-                    st.warning("Please upload an image to decode.")
+                    st.warning("Wajib menyediakan gambar untuk memecahkan pesan rahasia!")
 
 # ======================
 # Halaman log
