@@ -83,8 +83,8 @@ def main_menu():
         [
             "Teks Enkripsi dan Dekripsi",
             "Teks Super Enkripsi dan Dekripsi",
-            "File Enkripsi dan Dekripsi (XChaCha20)",
-            "Steganography LSBM"
+            "File Enkripsi dan Dekripsi",
+            "Steganography"
         ]
     )
 
@@ -98,7 +98,8 @@ def main_menu():
     # ChaCha20 Teks
     # ======================
     elif menu == "Teks Enkripsi dan Dekripsi":
-        st.title("📝 Enkripsi dan Dekripsi Teks Menggunakan Algoritma ChaCha20")
+        st.title("Enkripsi dan Dekripsi Teks Menggunakan Algoritma ChaCha20")
+        st.info("ChaCha20 adalah algoritma stream cipher yang cepat dan aman, sering digunakan dalam protokol keamanan seperti TLS dan SSH.")
 
     # ========= Generasi (refresh) kunci baru
         if "text_key" not in st.session_state:
@@ -168,7 +169,8 @@ def main_menu():
     # Teks super
     # ======================
     elif menu == "Teks Super Enkripsi dan Dekripsi":
-        st.title("🌀 Super Text (Reverse + Fernet, 2-Step Mode)")
+        st.title("Super Text Menggunakan algoritma (Reverse + Fernet, 2-Step Enkripsi)")
+        st.info("Super Text Encryption menggabungkan dua metode enkripsi: pertama, teks dibalik (reversed), kemudian dienkripsi menggunakan algoritma Fernet yang aman.")
 
         # ========= Setup kunci
         if "super_key" not in st.session_state:
@@ -252,8 +254,9 @@ def main_menu():
     # ====================================================
     # File Encryption (XChaCha20-Poly1305)
     # ====================================================
-    elif menu == "File Enkripsi dan Dekripsi (XChaCha20)":
-        st.title("🗂️ File Encryption (XChaCha20-Poly1305)")
+    elif menu == "File Enkripsi dan Dekripsi":
+        st.title("File Encryption Menggunakan Algoritma XChaCha20-Poly1305")
+        st.info("XChaCha20-Poly1305 adalah algoritma enkripsi yang kuat dan aman, cocok untuk enkripsi file karena kemampuannya menangani nonce yang lebih panjang dan memberikan integritas data melalui autentikasi.")    
 
         from crypto.xchacha_file import (
             generate_key_b64,
@@ -367,8 +370,10 @@ def main_menu():
     # ====================================================
     # Steganography: LSB Matching (LSB±1)
     # ====================================================
-    elif menu == "Steganography LSBM":
-        st.title("🖼️ Steganography: LSB Matching (LSB±1)") 
+    elif menu == "Steganography":
+        st.title("🖼️ Steganography Menggunakan Algoritma LSB-Matching")
+        st.info("LSB-Matching adalah teknik steganografi yang menyembunyikan pesan rahasia dalam citra digital dengan memodifikasi bit paling tidak signifikan (LSB) dari piksel gambar. Teknik ini membuat perubahan yang lebih halus pada gambar, sehingga lebih sulit dideteksi dibandingkan metode LSB tradisional.")
+         
         encode_tab, decode_tab = st.tabs(["🔒 Encode (Hide Message)", "🔓 Decode (Reveal Message)"])
 
         # ========= encode
