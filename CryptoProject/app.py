@@ -108,12 +108,10 @@ def main_menu():
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            st.text_area(
-                "Kunci (base64):",
+            st.subheader("Kunci (base64):")
+            st.code(
                 chacha_text.key_to_str(st.session_state.text_key),
-                height=50,
-                key=f"display_key_{hash(st.session_state.text_key)}",
-                disabled=True
+                language=None
             )
 
         with col2:
