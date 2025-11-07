@@ -112,7 +112,8 @@ def main_menu():
                 "Kunci (base64):",
                 chacha_text.key_to_str(st.session_state.text_key),
                 height=50,
-                key=f"display_key_{hash(st.session_state.text_key)}"
+                key=f"display_key_{hash(st.session_state.text_key)}",
+                disabled=True
             )
 
         with col2:
@@ -184,7 +185,16 @@ def main_menu():
             if "super_key_saved" in st.session_state:
                 st.session_state.super_key = st.session_state.super_key_saved
 
-        st.text_input("Kunci Fernet (base64):", st.session_state.super_key, disabled=True)
+        cold1, cold2 = st.columns([3, 1])
+        
+        with cold1:
+            st.text_input("Kunci Fernet (base64):", st.session_state.super_key, disabled=True)
+
+        with cold2:
+            if st.button("🔁 Refresh Kunci"):
+                st.session_state.super_key = Fernet.generate_key().decode()
+                st.session_state.super_key_saved = st.session_state.super_key
+                st.rerun()
 
         st.subheader("🔒 Enkripsi Super Text")
         # ========= Encrypt tahap 1: reverse
@@ -276,15 +286,15 @@ def main_menu():
             if "file_key_saved" in st.session_state:
                 st.session_state.file_key = st.session_state.file_key_saved
 
-        colk1, colk2 = st.columns([4, 1])
+        colk1, colk2 = st.columns([3, 1])
         with colk1:
             st.text_input("Kunci (base64):",
                         value=st.session_state.file_key, disabled=True)
         with colk2:
-            if st.button("Generasi (refresh) kunci baru"):
+            if st.button("🔁 Refresh Kunci"):
                 st.session_state.file_key = generate_key_b64()
                 st.session_state.file_key_saved = st.session_state.file_key
-                st.success("Kunci baru telah digenerasi")
+                st.success("Kunci baru telah dibuat!")
 
         st.divider()
 
@@ -387,7 +397,7 @@ def main_menu():
             uploaded_image = st.file_uploader("Upload cover image untuk menyisipkan pesan (PNG, BMP)", type=["png", "bmp"], key="lsbm_uploader")
             message = st.text_area("Masukkan pesan rahasia", height=150, key="lsbm_message")
             
-            if st.button("🔒 Encode", key="lsbm_hide_btn"):
+            if st.button("Encode", key="lsbm_hide_btn"):
                 if uploaded_image is not None and message:
                     try:
                         # gambar dibuka dalam bentuk PILLOW
@@ -425,7 +435,7 @@ def main_menu():
             
             secret_file = st.file_uploader("Upload gambar yang disisipi pesan", type=["png", "bmp"], key="lsbm_decoder")
             
-            if st.button("🔓 Decode", key="lsbm_reveal_btn"):
+            if st.button("Decode", key="lsbm_reveal_btn"):
                 if secret_file is not None:
                     try:
                         secret_image = Image.open(secret_file)
