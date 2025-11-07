@@ -70,7 +70,7 @@ def main_menu():
     st.sidebar.title(f"👋 Welcome, {st.session_state.username}")
     st.sidebar.title(f"👋 Halo, {st.session_state.username}")
 
-    # Pastikan super_key tidak pernah berubah walau rerun
+    # Pastikan super_key tidak berubah walau rerun
     if "super_key" not in st.session_state or len(st.session_state.get("super_key", "")) != 44:
         st.session_state.super_key = Fernet.generate_key().decode()
         st.session_state.super_key_saved = st.session_state.super_key
@@ -108,7 +108,7 @@ def main_menu():
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            st.subheader("Kunci (base64):")
+            st.subheader("Kunci (base64)")
             st.code(
                 chacha_text.key_to_str(st.session_state.text_key),
                 language=None
@@ -121,7 +121,7 @@ def main_menu():
 
         st.divider()
         st.subheader("🔒 Enkripsi Teks")
-        plaintext = st.text_area("Masukkan teks untuk dienkripsi:", "")
+        plaintext = st.text_area("Masukkan teks untuk dienkripsi", "")
 
         # ========= Encrypt
         if st.button("Enkripsi"):
@@ -134,7 +134,9 @@ def main_menu():
                 st.session_state.last_nonce = result["nonce"]
 
                 st.success("✅ Teks telah dienkripsi!")
+                st.text("Hasil enkripsi")
                 st.code(st.session_state.last_ciphertext, language="plaintext")
+                st.text("Hasil nonce")
                 st.code(st.session_state.last_nonce, language="plaintext")
 
         # ========= Decrypt
@@ -143,8 +145,8 @@ def main_menu():
 
         # Manual input agar user bisa menggunakan key sebelumnya
         manual_text_key = st.text_input(
-            "Kunci (base64) | Paste jika menyimpan kunci",
-            value=st.session_state.get("text_key_b64", ""),
+            "Kunci (base64)",
+            value=chacha_text.key_to_str(st.session_state.text_key),
         )
 
         cipher_in = st.text_area("Ciphertext (base64):", st.session_state.get("last_ciphertext", ""))
@@ -157,6 +159,7 @@ def main_menu():
             else:
                 # Ambil kunci manual kalo textbox diisi, else ambil kunci yaang digenerate (tp kayak rusak else nya?)
                 key_to_use = manual_text_key.strip() if manual_text_key.strip() != "" else chacha_text.key_to_str(st.session_state.text_key)
+                
                 try:
                     plain = chacha_text.decrypt_text(cipher_in, nonce_in, chacha_text.str_to_key(key_to_use))
                     st.success("✅ Teks telah didekripsi!")
@@ -184,55 +187,38 @@ def main_menu():
                 st.session_state.super_key = st.session_state.super_key_saved
 
         cold1, cold2 = st.columns([3, 1])
-        
-        with cold1:
-            st.text_input("Kunci Fernet (base64):", st.session_state.super_key, disabled=True)
 
+        with cold1:
+            st.subheader("Kunci (base64)")
+            st.code(
+                st.session_state.super_key,
+                language=None
+            )
         with cold2:
             if st.button("🔁 Refresh Kunci"):
                 st.session_state.super_key = Fernet.generate_key().decode()
                 st.session_state.super_key_saved = st.session_state.super_key
                 st.rerun()
 
-        st.subheader("🔒 Enkripsi Super Text")
-        # ========= Encrypt tahap 1: reverse
-        st.subheader("Tahap 1: Reverse Text")
-        plaintext = st.text_area("Masukkan teks untuk dienkripsi:")
+        # ========= Encrypt
+        st.subheader("🔒 Enkripsi Super")
+        plaintext = st.text_area("Masukkan teks untuk dienkripsi")
 
-        if st.button("Enkripsi dengan Reverse"):
+        if st.button("Enkripsi"):
             if plaintext.strip() == "":
-                st.warning("Wajib memasukkan teks untuk enkripsi!")
+                st.warning("Wajib memasukkan teks untuk dienkripsi!")
             else:
                 reversed_text = step1_reverse_encrypt(plaintext)
-                st.success("✅ Teks telah dienkripsi dengan algoritma Reverse!")
-                st.code(reversed_text, language="text")
+                fernet_text = step2_fernet_encrypt(reversed_text, st.session_state.super_key)
+                
+                st.success("✅ Teks berhasil dienkripsi!")
+                st.text("Hasil enkripsi tahap 1 (Reverse)")
+                st.code(reversed_text, language=None)
+                st.text("Hasil akhir enkripsi (Fernet)")
+                st.code(st.session_state.super_cipher, language=None)
+
                 st.session_state.last_reversed = reversed_text
-
-        st.divider()
-
-        # ========= Encrypt tahap 2: fernet
-        st.subheader("Tahap 2: Fernet Encrypt")
-        reversed_input = st.text_area(
-            "Masukkan hasil enkripsi dari tahap 1:",
-            st.session_state.get("last_reversed", "")
-        )
-
-        # Error handling jika tahap 1 belum dilakukan
-        if st.button("Enkripsi dengan Fernet"):
-            if reversed_input.strip() == "":
-                st.warning("Wajib menjalankan tahap 1 terlebih dahulu!")
-            else:
-                try:
-                    final_cipher = step2_fernet_encrypt(reversed_input, st.session_state.super_key)
-
-                    # simpan hasil ke session agar auto muncul di decrypt section
-                    st.session_state.super_cipher = final_cipher
-
-                    st.success("✅ Enkripsi super berhasil!")
-                    st.code(st.session_state.super_cipher, language="text")
-
-                except Exception as e:
-                    st.error(str(e))
+                st.session_state.super_cipher = fernet_text
 
         st.divider()
 
@@ -250,7 +236,7 @@ def main_menu():
             st.session_state.get("super_cipher", "")
         )
 
-        if st.button("Dekripsi Super"):
+        if st.button("Dekripsi"):
             if cipher_in.strip() == "":
                 st.warning("Wajib mengisi ciphertext!")
             else:
@@ -286,13 +272,17 @@ def main_menu():
 
         colk1, colk2 = st.columns([3, 1])
         with colk1:
-            st.text_input("Kunci (base64):",
-                        value=st.session_state.file_key, disabled=True)
+            st.subheader("Kunci (base64)")
+            st.code(
+                st.session_state.file_key,
+                language=None
+            )
         with colk2:
             if st.button("🔁 Refresh Kunci"):
                 st.session_state.file_key = generate_key_b64()
                 st.session_state.file_key_saved = st.session_state.file_key
                 st.success("Kunci baru telah dibuat!")
+                st.rerun()
 
         st.divider()
 
