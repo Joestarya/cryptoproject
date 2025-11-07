@@ -27,7 +27,6 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = None
 
-
 # ======================
 # LOGIN PAGE
 # ======================
@@ -179,6 +178,9 @@ def main_menu():
         "menggunakan satu metode saja.")
 
         # ========= Setup kunci
+        if "super_cipher" not in st.session_state:
+            st.session_state.super_cipher = ""
+
         if "super_key" not in st.session_state:
             st.session_state.super_key = Fernet.generate_key().decode()
             st.session_state.super_key_saved = st.session_state.super_key
