@@ -7,7 +7,6 @@ from cryptography.fernet import Fernet
 from crypto.super_text import step1_reverse_encrypt, step2_fernet_encrypt, super_decrypt
 
 import base64
-import os
 
 from PIL import Image
 from io import BytesIO

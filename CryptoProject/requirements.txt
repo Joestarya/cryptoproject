@@ -1,8 +1,6 @@
 streamlit
 argon2-cffi
 cryptography
-ascon
+Pillow
 numpy
-opencv-python
-pillow
 scipy
