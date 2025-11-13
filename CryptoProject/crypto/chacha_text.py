@@ -4,28 +4,27 @@ from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
 
 # ======================
-# KEY MANAGEMENT
+# Key
 # ======================
+
+# generate kunci
 def generate_key() -> bytes:
-    """Generate a random 32-byte key"""
     return os.urandom(32)
 
-
+# konversi bytes kunci ke string base64
 def key_to_str(key: bytes) -> str:
-    """Convert key bytes to Base64 string"""
     return base64.b64encode(key).decode()
 
-
+# konversi string base64 kembali ke bytes kunci
 def str_to_key(key_str: str) -> bytes:
-    """Convert Base64 string back to key bytes"""
     return base64.b64decode(key_str)
 
 
 # ======================
-# ENCRYPT / DECRYPT
+# Encrypt / decrypt
 # ======================
+
 def encrypt_text(plaintext: str, key: bytes) -> dict:
-    """Encrypt text using ChaCha20Poly1305"""
     aead = ChaCha20Poly1305(key)
     nonce = os.urandom(12)
     ciphertext = aead.encrypt(nonce, plaintext.encode(), None)
@@ -37,7 +36,6 @@ def encrypt_text(plaintext: str, key: bytes) -> dict:
 
 
 def decrypt_text(ciphertext_b64: str, nonce_b64: str, key: bytes) -> str:
-    """Decrypt text using ChaCha20Poly1305"""
     aead = ChaCha20Poly1305(key)
     nonce = base64.b64decode(nonce_b64)
     ciphertext = base64.b64decode(ciphertext_b64)
