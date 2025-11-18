@@ -1,7 +1,8 @@
 # crypto/xchacha_file.py
 import base64
 import os
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as XChaCha20Poly1305
+from nacl.secret import SecretBox #xchacha20-poly1305
+from nacl.utils import random as random_bytes
 
 def generate_key_b64() -> str:
     key = os.urandom(32)
@@ -19,10 +20,10 @@ def encrypt_file_bytes(file_bytes: bytes, key_b64: str):
     try:
         key = _b64decode_str(key_b64)
         if len(key) != 32:
-            raise ValueError("Kunci harus berukuran 32 byte saat didekripsi dari base64!")
-        aead = XChaCha20Poly1305(key)
-        nonce = os.urandom(12)
-        ct = aead.encrypt(nonce, file_bytes, associated_data=None)
+            raise ValueError("Kunci harus berukuran 32 byte")
+        box = SecretBox(key)
+        nonce = os.urandom(24)
+        ct = box.encrypt(file_bytes, nonce)
         return base64.b64encode(ct).decode(), base64.b64encode(nonce).decode()
     except Exception as e:
         raise Exception(f"Enkripsi gagal: {e}")
@@ -33,13 +34,12 @@ def decrypt_file_bytes(ciphertext_b64: str, nonce_b64: str, key_b64: str) -> byt
         nonce = _b64decode_str(nonce_b64)
         ct = _b64decode_str(ciphertext_b64)
         if len(key) != 32:
-            raise ValueError("Kunci harus berukuran 32 byte saat didekripsi dari base64!")
-        if len(nonce) != 12:
-            raise ValueError("Nonce harus berukuran 12 byte saat didekripsi dari base64!")
-        if len(ct) < 16:
+            raise ValueError("Kunci harus berukuran 32 byte")
+        # ct sudah include nonce (24) dan autentikasi (16)
+        if len(ct) < 40:
             raise ValueError("Ciphertext terlalu pendek / tidak valid.")
-        aead = XChaCha20Poly1305(key)
-        pt = aead.decrypt(nonce, ct, associated_data=None)
+        box = SecretBox(key)
+        pt = box.decrypt(ct)
         return pt
     except Exception as e:
         raise Exception(f"Dekripsi gagal: {e}")
